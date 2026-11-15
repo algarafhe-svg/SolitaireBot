@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - 'SolitaireFloatingBot_AndroidStudio_Project.zip'
+      - 'SolitaireFloatingBot_AndroidStudio_Project_FINAL.zip'
       - '.github/workflows/build.yml'
 
 jobs:
@@ -25,7 +25,6 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v4
         with:
-          cmdline-tools-version: '15859902'
           packages: 'platform-tools'
 
       - name: Set up Gradle
@@ -35,7 +34,8 @@ jobs:
 
       - name: Extract project
         run: |
-          unzip -q SolitaireFloatingBot_AndroidStudio_Project.zip -d extracted
+          unzip -q SolitaireFloatingBot_AndroidStudio_Project_FINAL.zip -d extracted
+          test -d extracted/SolitaireFloatingBot
 
       - name: Build APK
         run: |
