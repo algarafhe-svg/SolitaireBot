@@ -1,11 +1,10 @@
-
 name: Build SolitaireBot APK
 
 on:
   workflow_dispatch:
   push:
     paths:
-      - 'SolitaireFloatingBot_AndroidStudio_Project.zip'
+      - '**.zip'
       - '.github/workflows/build.yml'
 
 jobs:
@@ -16,33 +15,36 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Java
+      - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
 
-      - name: Set up Android SDK
+      - name: Setup Android SDK
         uses: android-actions/setup-android@v3
-        with:
-          packages: 'platform-tools'
 
-      - name: Set up Gradle
+      - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
 
       - name: Extract project
         run: |
-          unzip -q SolitaireFloatingBot_AndroidStudio_Project.zip -d extracted
+          mkdir extracted
+          ZIP=$(find . -maxdepth 1 -name '*.zip' | head -n 1)
+          test -n "$ZIP"
+          unzip -q "$ZIP" -d extracted
 
       - name: Build APK
         run: |
-          cd extracted/SolitaireFloatingBot
+          PROJECT=$(dirname "$(find extracted -name settings.gradle -o -name settings.gradle.kts | head -n 1)")
+          test -n "$PROJECT"
+          cd "$PROJECT"
           gradle assembleDebug -Pkotlin.jvm.target.validation.mode=warning
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: SolitaireBot-APK
-          path: extracted/SolitaireFloatingBot/app/build/outputs/apk/debug/app-debug.apk
+          path: extracted/**/app/build/outputs/apk/debug/app-debug.apk
