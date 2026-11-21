@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - 'Solitaire_Pova_Android_fixed.zip.b64.part*'
+      - 'Solitaire_Pova_Android_repaired.zip.b64.part*'
       - '.github/workflows/build-pova.yml'
 
 permissions:
@@ -32,7 +32,7 @@ jobs:
 
       - name: Restore and extract the repaired project archive
         run: |
-          cat Solitaire_Pova_Android_fixed.zip.b64.part* | base64 --decode > Solitaire_Pova_Android_fixed.zip
+          cat Solitaire_Pova_Android_repaired.zip.b64.part* | base64 --decode > Solitaire_Pova_Android_fixed.zip
           unzip -q Solitaire_Pova_Android_fixed.zip -d extracted
           test -f extracted/Solitaire_Pova_Android/app/src/main/AndroidManifest.xml
           test -f extracted/Solitaire_Pova_Android/gradle.properties
