@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="8dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="#AA000000"
+        android:alpha="0.9">
+
+        <TextView
+            android:id="@+id/txtOverlayStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="بوت سوليتير جاهز"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:padding="8dp"
+            android:gravity="center"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:padding="4dp">
+
+            <Button
+                android:id="@+id/btnOverlayStart"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="ابدأ"
+                android:layout_weight="1"
+                android:layout_margin="2dp"/>
+
+            <Button
+                android:id="@+id/btnOverlayStop"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="إيقاف"
+                android:layout_weight="1"
+                android:layout_margin="2dp"/>
+        </LinearLayout>
+    </LinearLayout>
+</FrameLayout>
