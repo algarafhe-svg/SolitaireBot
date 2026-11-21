@@ -4,7 +4,8 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - 'Solitaire_Pova_Android_repaired.zip.b64.part*'
+      - 'Solitaire_Pova_Android.zip'
+      - 'android-patch/**'
       - '.github/workflows/build-pova.yml'
 
 permissions:
@@ -30,19 +31,19 @@ jobs:
           yes | /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager --licenses >/dev/null 2>&1 || true
           /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager --install "platform-tools" "platforms;android-35" "build-tools;35.0.0"
 
-      - name: Restore and extract the repaired project archive
+      - name: Extract original Pova project and apply repaired source files
         run: |
-          cat Solitaire_Pova_Android_repaired.zip.b64.part* | base64 --decode > Solitaire_Pova_Android_fixed.zip
-          unzip -q Solitaire_Pova_Android_fixed.zip -d extracted
-          test -f extracted/Solitaire_Pova_Android/app/src/main/AndroidManifest.xml
-          test -f extracted/Solitaire_Pova_Android/gradle.properties
+          test -f Solitaire_Pova_Android.zip
+          unzip -q Solitaire_Pova_Android.zip -d extracted
+          test -d extracted/Solitaire_Pova_Android/app/src/main
+          cp -a android-patch/. extracted/Solitaire_Pova_Android/
 
       - name: Set up Gradle 8.9
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
 
-      - name: Run solver tests and build APK
+      - name: Run unit tests and build APK
         working-directory: extracted/Solitaire_Pova_Android
         run: |
           gradle --no-daemon --stacktrace :app:testDebugUnitTest :app:assembleDebug
