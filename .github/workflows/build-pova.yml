@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - 'Solitaire_Pova_Android.zip'
+      - 'Solitaire_Pova_Android_fixed.zip.b64.part*'
       - '.github/workflows/build-pova.yml'
 
 permissions:
@@ -27,97 +27,25 @@ jobs:
         run: |
           echo "ANDROID_HOME=/usr/local/lib/android/sdk" >> "$GITHUB_ENV"
           echo "/usr/local/lib/android/sdk/platform-tools" >> "$GITHUB_PATH"
-          yes | /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager --licenses >/dev/null
+          yes | /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager --licenses >/dev/null 2>&1 || true
           /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager --install "platform-tools" "platforms;android-35" "build-tools;35.0.0"
 
-      - name: Extract project
+      - name: Restore and extract the repaired project archive
         run: |
-          test -f Solitaire_Pova_Android.zip
-          unzip -q Solitaire_Pova_Android.zip -d extracted
-          test -d extracted/Solitaire_Pova_Android/app/src/main
+          cat Solitaire_Pova_Android_fixed.zip.b64.part* | base64 --decode > Solitaire_Pova_Android_fixed.zip
+          unzip -q Solitaire_Pova_Android_fixed.zip -d extracted
+          test -f extracted/Solitaire_Pova_Android/app/src/main/AndroidManifest.xml
+          test -f extracted/Solitaire_Pova_Android/gradle.properties
 
-      - name: Prepare Gradle configuration
+      - name: Set up Gradle 8.9
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Run solver tests and build APK
         working-directory: extracted/Solitaire_Pova_Android
         run: |
-          cat > settings.gradle.kts <<'EOF'
-          pluginManagement {
-              repositories {
-                  google()
-                  mavenCentral()
-                  gradlePluginPortal()
-              }
-          }
-          dependencyResolutionManagement {
-              repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
-              repositories {
-                  google()
-                  mavenCentral()
-              }
-          }
-          rootProject.name = "Solitaire_Pova_Android"
-          include(":app")
-          EOF
-          cat > build.gradle.kts <<'EOF'
-          plugins {
-              id("com.android.application") version "8.7.3" apply false
-              id("org.jetbrains.kotlin.android") version "2.0.21" apply false
-          }
-          EOF
-          cat > gradle.properties <<'EOF'
-          org.gradle.jvmargs=-Xmx3g -Dfile.encoding=UTF-8
-          android.useAndroidX=true
-          kotlin.code.style=official
-          EOF
-          cat > app/build.gradle.kts <<'EOF'
-          plugins {
-              id("com.android.application")
-              id("org.jetbrains.kotlin.android")
-          }
-          android {
-              namespace = "com.jawaker.solitaire"
-              compileSdk = 35
-              defaultConfig {
-                  applicationId = "com.jawaker.solitaire"
-                  minSdk = 24
-                  targetSdk = 35
-                  versionCode = 1
-                  versionName = "1.0"
-              }
-              compileOptions {
-                  sourceCompatibility = JavaVersion.VERSION_17
-                  targetCompatibility = JavaVersion.VERSION_17
-              }
-              kotlinOptions {
-                  jvmTarget = "17"
-              }
-              buildFeatures { viewBinding = true }
-          }
-          dependencies {
-              implementation("androidx.core:core-ktx:1.15.0")
-              implementation("androidx.appcompat:appcompat:1.7.0")
-              implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
-              implementation("com.google.mlkit:text-recognition:16.0.1")
-              implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
-          }
-          EOF
-          mkdir -p app/src/main/res/values
-          cat > app/src/main/res/values/styles.xml <<'EOF'
-          <resources>
-              <style name="Theme.SolitairePova" parent="Theme.AppCompat.Light.NoActionBar">
-                  <item name="android:fontFamily">sans</item>
-                  <item name="android:colorAccent">#1976D2</item>
-              </style>
-          </resources>
-          EOF
-          sed -i 's/import\.os\.Bundle/import android.os.Bundle/' app/src/main/java/com/jawaker/solitaire/MainActivity.kt
-          sed -i 's/android:layoutMarginStart=/android:layout_marginStart=/g; s/^[[:space:]]*:layout_weight=/            android:layout_weight=/' app/src/main/res/layout/activity_main.xml
-          sed -i 's/android:icon="@mipmap\/ic_launcher"//; s/android:roundIcon="@mipmap\/ic_launcher_round"//' app/src/main/AndroidManifest.xml
-
-      - name: Build debug APK
-        working-directory: extracted/Solitaire_Pova_Android
-        run: |
-          gradle --version
-          gradle :app:assembleDebug --stacktrace
+          gradle --no-daemon --stacktrace :app:testDebugUnitTest :app:assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
