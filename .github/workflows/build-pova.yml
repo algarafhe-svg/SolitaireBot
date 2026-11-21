@@ -103,6 +103,7 @@ jobs:
           </resources>
           EOF
           sed -i 's/import\.os\.Bundle/import android.os.Bundle/' app/src/main/java/com/jawaker/solitaire/MainActivity.kt
+          sed -i 's/android:layoutMarginStart=/android:layout_marginStart=/g; s/^[[:space:]]*:layout_weight=/            android:layout_weight=/' app/src/main/res/layout/activity_main.xml
           sed -i 's/android:icon="@mipmap\/ic_launcher"//; s/android:roundIcon="@mipmap\/ic_launcher_round"//' app/src/main/AndroidManifest.xml
 
       - name: Build debug APK
